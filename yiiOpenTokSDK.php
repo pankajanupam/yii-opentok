@@ -56,47 +56,47 @@ class yiiOpenTokSDK  extends CApplicationComponent{
             throw CException("Error " . $createSessionXML->error['code'] ." ". $createSessionXML->error->children()->getName() . ": " . $errMsg );
         }
         
-        if(!isset($createSessionXML->Session->sessionId)) {
+        if(!isset($createSessionXML->Session->session_id)) {
             echo"<pre>";print_r($createSessionXML);echo"</pre>";
             throw CException("Failed to create session.");
         }
         
-        $sessionId = $createSessionXML->Session->sessionId;
+        $sessionId = $createSessionXML->Session->session_id;
 
         return new yiiOpenTokSession($sessionId, null);
     }
     
     /** - Generate a token
      *
-     * $sessionId  - If sessionId is not blank, this token can only join the call with the specified sessionId.
+     * $session_id  - If session_id is not blank, this token can only join the call with the specified session_id.
      * $role        - One of the constants defined in yiiRoleConstants. Default is publisher, look in the documentation to learn more about roles.
      * $expire_time - Optional timestamp to change when the token expires. See documentation on token for details.
      * $connection_data - Optional string data to pass into the stream. See documentation on token for details.
      */
-    public function generateToken($sessionId='', $role='', $expire_time=NULL, $connection_data='') {
+    public function generateToken($session_id='', $role='', $expire_time=NULL, $connection_data='') {
         $create_time = time();
 
         $nonce = microtime(true) . mt_rand();
 
-        if(is_null($sessionId) || strlen($sessionId) == 0){
+        if(is_null($session_id) || strlen($session_id) == 0){
             throw CException("Null or empty session ID are not valid");
         }
 
-        $sub_sessionId = substr($sessionId, 2);
-        $decoded_sessionId="";
+        $sub_session_id = substr($session_id, 2);
+        $decoded_session_id="";
         for($i=0;$i<3;$i++){
-            $new_sessionId = $sub_sessionId.str_repeat("=",$i);
-            $new_sessionId = str_replace("-", "+",$new_sessionId);
-            $new_sessionId = str_replace("_", "/",$new_sessionId);
-            $decoded_sessionId = base64_decode($new_sessionId);
-            if($decoded_sessionId){
+            $new_session_id = $sub_session_id.str_repeat("=",$i);
+            $new_session_id = str_replace("-", "+",$new_session_id);
+            $new_session_id = str_replace("_", "/",$new_session_id);
+            $decoded_session_id = base64_decode($new_session_id);
+            if($decoded_session_id){
                 break;
             }
         }
-        if (strpos($decoded_sessionId, "~")===false){
+        if (strpos($decoded_session_id, "~")===false){
             throw CException("An invalid session ID was passed");
         }else{
-            $arr=explode("~",$decoded_sessionId);
+            $arr=explode("~",$decoded_session_id);
             if($arr[1]!=$this->apiKey){
                 throw CException("An invalid session ID was passed");
             }
@@ -109,7 +109,7 @@ class yiiOpenTokSDK  extends CApplicationComponent{
             throw CException("unknown role $role");
         }
 
-        $data_string = "sessionId=$sessionId&create_time=$create_time&role=$role&nonce=$nonce";
+        $data_string = "session_id=$session_id&create_time=$create_time&role=$role&nonce=$nonce";
         if(!is_null($expire_time)) {
             if(!is_numeric($expire_time))
                 throw CException("Expire time must be a number");
@@ -204,8 +204,8 @@ class yiiOpenTokSDK  extends CApplicationComponent{
     
     /** - Old functions to be depreciated...
      */
-    public function generate_token($sessionId='', $role='', $expire_time=NULL, $connection_data='') {
-      return $this->generateToken($sessionId, $role, $expire_time, $connection_data);
+    public function generate_token($session_id='', $role='', $expire_time=NULL, $connection_data='') {
+      return $this->generateToken($session_id, $role, $expire_time, $connection_data);
     } 
     public function create_session($location='', $properties=array()) {
       return $this->createSession($location, $properties);
